@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kalkulator Operasi Bitwise XOR Biner dan Teks.">
+    <title>Kalkulator Operasi XOR Biner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <div class="main-card">
+            <!-- Header -->
+            <div class="header">
+                <div class="header__tag">Operasi Bitwise Biner</div>
+                <h1 class="header__title">Kalkulator Operasi XOR</h1>
+                <p class="header__subtitle">Hitung Operasi Exclusive OR (XOR / &#8891;) pada Data Biner dan Teks</p>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="tab-group">
+                <button
+                    type="button"
+                    class="tab-button {{ 'active' if mode == 'biner' else '' }}"
+                    onclick="switchTab('biner')"
+                >
+                    Mode XOR Biner (0 dan 1)
+                </button>
+                <button
+                    type="button"
+                    class="tab-button {{ 'active' if mode == 'teks' else '' }}"
+                    onclick="switchTab('teks')"
+                >
+                    Mode XOR Teks ASCII
+                </button>
+            </div>
+
+            <!-- Error Notification -->
+            {% if error %}
+            <div class="alert-error">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form id="xor-form" method="POST" action="/">
+                <input type="hidden" name="mode" id="mode-input" value="{{ mode }}">
+
+                <!-- Input Mode Biner -->
+                <div id="section-biner" style="{{ 'display:block;' if mode == 'biner' else 'display:none;' }}">
+                    <div class="form-group">
+                        <label for="bin1">Data Biner Pertama (Input A):</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="bin1"
+                            name="bin1"
+                            placeholder="Contoh: 11010110 atau 1010"
+                            value="{{ bin1 if mode == 'biner' else '' }}"
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <div class="operator-divider">
+                        <span class="operator-tag">XOR (&#8891;)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bin2">Data Biner Kedua (Input B):</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="bin2"
+                            name="bin2"
+                            placeholder="Contoh: 10110011 atau 1100"
+                            value="{{ bin2 if mode == 'biner' else '' }}"
+                            autocomplete="off"
+                        >
+                    </div>
+                </div>
+
+                <!-- Input Mode Teks -->
+                <div id="section-teks" style="{{ 'display:block;' if mode == 'teks' else 'display:none;' }}">
+                    <div class="form-group">
+                        <label for="teks">Teks / Plaintext:</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="teks"
+                            name="teks"
+                            placeholder="Contoh: KRYPTO"
+                            value="{{ teks if mode == 'teks' else '' }}"
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <div class="operator-divider">
+                        <span class="operator-tag">XOR (&#8891;)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kunci">Kunci Teks / Key:</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="kunci"
+                            name="kunci"
+                            placeholder="Contoh: KEY"
+                            value="{{ kunci if mode == 'teks' else '' }}"
+                            autocomplete="off"
+                        >
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Hitung Operasi XOR
+                </button>
+            </form>
+
+            <!-- Results Section for Biner -->
+            {% if hasil_data and mode == 'biner' %}
+            <div class="result-card">
+                <div class="result-header">
+                    <span class="result-title">Hasil Penjumlahan Biner Bitwise XOR</span>
+                    <button class="btn-copy" onclick="copyText('res-bin-val')">Salin Biner</button>
+                </div>
+
+                <div class="binary-calc-box">
+                    <div class="binary-row">
+                        <span class="binary-row__label">A:</span>
+                        <span class="binary-row__bits">{{ hasil_data.b1_padded }}</span>
+                    </div>
+                    <div class="binary-row">
+                        <span class="binary-row__label">B:</span>
+                        <span class="binary-row__bits">{{ hasil_data.b2_padded }}</span>
+                    </div>
+                    <div class="binary-divider"></div>
+                    <div class="binary-row">
+                        <span class="binary-row__label">A XOR B:</span>
+                        <span class="binary-row__bits result" id="res-bin-val">{{ hasil_data.hasil_biner }}</span>
+                    </div>
+                </div>
+
+                <!-- Summary Pills -->
+                <div class="summary-pills">
+                    <div class="pill-item">
+                        <div class="pill-item__label">Desimal (A)</div>
+                        <div class="pill-item__value">{{ hasil_data.dec1 }}</div>
+                    </div>
+                    <div class="pill-item">
+                        <div class="pill-item__label">Desimal (B)</div>
+                        <div class="pill-item__value">{{ hasil_data.dec2 }}</div>
+                    </div>
+                    <div class="pill-item">
+                        <div class="pill-item__label">Desimal (Hasil)</div>
+                        <div class="pill-item__value">{{ hasil_data.dec_hasil }}</div>
+                    </div>
+                </div>
+
+                <!-- Bitwise Breakdown Table -->
+                <table class="table-details">
+                    <thead>
+                        <tr>
+                            <th>Posisi Bit</th>
+                            <th>Bit A</th>
+                            <th>Bit B</th>
+                            <th>A XOR B</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detail in hasil_data.bit_details %}
+                        <tr>
+                            <td>Bit {{ detail.pos }}</td>
+                            <td>{{ detail.bit1 }}</td>
+                            <td>{{ detail.bit2 }}</td>
+                            <td><strong>{{ detail.hasil }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- Results Section for Teks -->
+            {% if hasil_data and mode == 'teks' %}
+            <div class="result-card">
+                <div class="result-header">
+                    <span class="result-title">Hasil XOR Teks</span>
+                    <button class="btn-copy" onclick="copyText('res-text-bin')">Salin Biner</button>
+                </div>
+
+                <div class="binary-calc-box">
+                    <div class="binary-row">
+                        <span class="binary-row__label">Hasil (Biner):</span>
+                        <span class="binary-row__bits result" id="res-text-bin">{{ hasil_data.hasil_biner }}</span>
+                    </div>
+                    <div class="binary-row" style="margin-top: 8px;">
+                        <span class="binary-row__label">Hasil (Hex):</span>
+                        <span class="binary-row__bits">{{ hasil_data.hasil_hex }}</span>
+                    </div>
+                    <div class="binary-row" style="margin-top: 8px;">
+                        <span class="binary-row__label">Hasil (Teks/ASCII):</span>
+                        <span class="binary-row__bits">{{ hasil_data.hasil_teks }}</span>
+                    </div>
+                </div>
+
+                <!-- Detail Table per Karakter -->
+                <table class="table-details">
+                    <thead>
+                        <tr>
+                            <th>Karakter Teks</th>
+                            <th>Biner Karakter</th>
+                            <th>Biner Kunci</th>
+                            <th>Hasil XOR Biner</th>
+                            <th>Hex</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in hasil_data.detail %}
+                        <tr>
+                            <td>{{ item.char }}</td>
+                            <td>{{ item.bin_char }}</td>
+                            <td>{{ item.bin_key }}</td>
+                            <td><strong>{{ item.bin_xor }}</strong></td>
+                            <td>{{ item.hex_xor }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- Truth Table Reference Card -->
+            <div class="truth-card">
+                <div class="truth-title">Tabel Kebenaran Gerbang Logika XOR (Truth Table)</div>
+                <div class="truth-grid">
+                    {% for row in tabel_kebenaran %}
+                    <div class="truth-cell">
+                        <div class="truth-cell__expr">{{ row.a }} XOR {{ row.b }}</div>
+                        <div class="truth-cell__res">{{ row.res }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                Kalkulator Operasi XOR Biner &copy; 2026
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(selectedMode) {
+            document.getElementById('mode-input').value = selectedMode;
+            
+            const sectionBiner = document.getElementById('section-biner');
+            const sectionTeks = document.getElementById('section-teks');
+            const tabButtons = document.querySelectorAll('.tab-button');
+
+            if (selectedMode === 'biner') {
+                sectionBiner.style.display = 'block';
+                sectionTeks.style.display = 'none';
+                tabButtons[0].classList.add('active');
+                tabButtons[1].classList.remove('active');
+            } else {
+                sectionBiner.style.display = 'none';
+                sectionTeks.style.display = 'block';
+                tabButtons[0].classList.remove('active');
+                tabButtons[1].classList.add('active');
+            }
+        }
+
+        function copyText(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Teks biner berhasil disalin ke clipboard!');
+            }).catch(err => {
+                console.error('Gagal menyalin: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
